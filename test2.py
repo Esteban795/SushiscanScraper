@@ -1,6 +1,5 @@
 import requests
-
-url = "https://opfrcdn.xyz/uploads/manga/jujutsu-kaisen/chapters/100/015.png"
+url = "https://s22.anime-sama.me/s1/scans/One Piece/1032/12.jpg"
 
 r = requests.get(url)
 print(r.status_code)
