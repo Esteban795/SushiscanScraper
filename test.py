@@ -35,7 +35,7 @@ def merge():
     # images[0].save( "./test.pdf", "PDF" ,resolution=100.0, save_all=True, append_images=images[1:])
 
 if __name__ == "__main__":
-    url = "https://sushiscan.fr/dragon-ball-super-scan-79-vf/"
+    url = "https://anime-sama.me/wind-breaker-nii-satoru-scan-96/"
     url_splitted = url.split("/")
     out_folder = "./" + url_splitted[3] + "/"
     os.mkdir(out_folder)
