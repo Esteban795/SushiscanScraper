@@ -4,11 +4,21 @@ from PIL import Image
 import os
 import requests
 import re
+from bypass_cloudflare import bypassCF
+
+
+ALLOWED_WEBSITES = ["anime-sama","sushiscan.net","sushiscan.fr/"]
+
 
 checkForValidFilename = re.compile(r"^(?:\d|_)*\.(?:jpg|png)$") #detects patterns like 1.jpg, 1.png, 20_012_120.jpg etc
 
 def grabImgURLS(url : str) -> list[str]:
-    """Finds every image source link from webpage at `url`."""
+    """Finds every image source link from webpage at `url`.
+    Args :
+        url : link to the scan
+    Returns : 
+        list of image urls (EVERY IMAGE OF THE PAGE,EVEN THE ONES NOT PART OF THE MANGA)
+    """
     soup = bs(urlopen(url),'lxml')
     urls = []
     for image in soup.findAll("img"):
@@ -16,6 +26,13 @@ def grabImgURLS(url : str) -> list[str]:
     return urls
 
 def downloadImages(urls : list[str], out_folder : str) -> list[str]:
+    """A function to download images from a lists of URLs
+    Args : 
+        urls : list of urls to download
+        out_folder : folder to store the images
+    Returns :
+        list of filenames of the downloaded images
+    """
     filenames = []
     for url in urls:
         filename = url.split("/")[-1]
@@ -33,10 +50,19 @@ def downloadImages(urls : list[str], out_folder : str) -> list[str]:
     return filenames
 
 def mergeImagesTopPDF(filenames,folder):
+    """Merges images into a single pdf file
+    Args :
+        filenames : list of filenames of the images to merge (in the right order, because os.listdir's order is unspecified.
+        folder : folder where the images are stored
+    """
     images = [Image.open(folder + f) for f in filenames]
     images[0].save(folder[:-1] + ".pdf", "PDF" ,resolution=100.0, save_all=True, append_images=images[1:])
 
 def clearFolder(folder):
+    """Removes all files from a folder, then removes the folder itself.
+    Args :
+        folder : path of the folder to remove.
+    """
     for file in os.listdir(folder):
         os.remove(folder + file)
     os.rmdir(folder)
@@ -49,7 +75,11 @@ if __name__ == "__main__":
     out_folder = sep + url_splitted[3] + "/"
     os.mkdir(out_folder) #temp dir to store images until I merge them into a single pdf
     try:
-        urls = grabImgURLS(url)
+        if "anime-sama" in url:
+            print("anime-sama")
+            urls = bypassCF(url)
+        else:
+            urls = grabImgURLS(url)
         filenames = downloadImages(urls,out_folder)
         mergeImagesTopPDF(filenames,out_folder)
     except Exception as e:
