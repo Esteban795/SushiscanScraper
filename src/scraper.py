@@ -2,16 +2,13 @@ from bs4 import BeautifulSoup as bs
 from urllib.request import urlopen
 from PIL import Image
 import os
-import re
 from bypass_cloudflare import bypassCF
 from force_fullmode import forceFullMode
+from url_handling import stripAnduseHTTPS,checkValidFileExt
 import cloudscraper
 
 
-ALLOWED_WEBSITES = ["anime-sama","sushiscan.net","sushiscan.fr/"]
-
-
-checkForValidFilename = re.compile(r"^(?:\w|\d|_|-)*\.(?:jpg|png|webp)$") #detects patterns like 1.jpg, 1.png, 20_012_120.jpg etc
+ALLOWED_WEBSITES = ["anime-sama","sushiscan.net","sushiscan.fr"]
 
 def grabImgURLS(url : str) -> list[str]:
     """Finds every image source link from webpage at `url`.
@@ -23,7 +20,8 @@ def grabImgURLS(url : str) -> list[str]:
     soup = bs(urlopen(url),'lxml')
     urls = []
     for image in soup.findAll("img"):
-        urls.append(image["src"].strip()) #for some reasons, some urls have a space right before https://, so we just strip it.
+        url = image["src"]
+        urls.append(stripAnduseHTTPS(url)) #for some reasons, some urls have a space right before https://, so we just strip it.
     return urls
 
 def downloadImages(urls : list[str], out_folder : str) -> list[str]:
@@ -38,17 +36,16 @@ def downloadImages(urls : list[str], out_folder : str) -> list[str]:
     scraper = cloudscraper.create_scraper()
     for url in urls:
         filename = url.split("/")[-1]
-        if not re.match(checkForValidFilename,filename): #image isn't of the type used by sushiscan, so it can't be part of the actual manga
-            continue
         outpath = os.path.join(out_folder, filename)
-        with open(outpath, 'wb') as f:
-            req = scraper.get(url)
-            if req.status_code != 200:
-                print(f"Error : status code returned by server is {req.status_code}, should be 200.")
-                clearFolder(out_folder)
-                exit(-1)
-            f.write(req.content)
-            filenames.append(filename)
+        if checkValidFileExt(filename): #svg, gif or stuff like that are not supported by PIL, and they are in fact not part of the manga anyway
+            with open(outpath, 'wb') as f:
+                req = scraper.get(url,allow_redirects=True)
+                if req.status_code != 200:
+                    print(f"Error : status code returned by server is {req.status_code}, should be 200.")
+                    clearFolder(out_folder)
+                    exit(-1)
+                f.write(req.content)
+                filenames.append(filename)
             
     return filenames
 
@@ -84,10 +81,10 @@ if __name__ == "__main__":
     out = input("Specify an absolute (or relative) path to store the manga scan (nothing specified means it will download it in the same folder as SushiscanScraper) : ")
     sep = "./" if out == "" else "/"
     url_splitted = url.split("/")
-    out_folder = sep + url_splitted[3] + "/"
+    out_folder = sep + url_splitted[-2] + "/"
     os.mkdir(out_folder) #temp dir to store images until I merge them into a single pdf
     try:
-        if "sushiscan.fr" in url: #sushiscan isn't protected by cloudflare, no needs to bypass anything
+        if "sushiscan.fr" in url: #sushiscan.fr isn't protected by cloudflare, no needs to bypass anything
             urls = grabImgURLS(url)
         elif "anime-sama" in url:
             urls = bypassCF(url)

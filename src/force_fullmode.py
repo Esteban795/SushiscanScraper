@@ -1,7 +1,6 @@
 from seleniumbase import SB
 from bs4 import BeautifulSoup as bs
-import os
-import time
+from url_handling import stripAnduseHTTPS
 
 JS_FUNC = """
 elt = document.getElementById("readingmode");
@@ -21,7 +20,7 @@ def forceFullMode(url : str) -> None:
                 to_add = i["data-src"]
             except: 
                 to_add = i["src"]
-            urls.append(to_add)
+            urls.append(stripAnduseHTTPS(to_add))
     return urls
 
 
