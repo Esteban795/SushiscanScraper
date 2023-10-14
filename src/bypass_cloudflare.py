@@ -1,5 +1,6 @@
 from seleniumbase import SB
 from bs4 import BeautifulSoup as bs
+from url_handling import stripAnduseHTTPS
 
 def bypassCF(url : str) -> list[str]:
     """Grabs every image from source link, even if is protected by Cloudflare.
@@ -12,11 +13,10 @@ def bypassCF(url : str) -> list[str]:
     with SB(uc=True,headless=True) as sb: #use headless=true to not see Chrome open (on Windows at least)
         sb.driver.get(url)
         soup = bs(sb.driver.page_source,'html.parser')
-        # print(sb.driver.page_source)
         for image in soup.findAll("img"):
-            try:
+            try: #lazy loaded images have a data-src attribute instead of a src attribute
                 to_add = image["data-src"]
-            except: 
+            except KeyError: 
                 to_add = image["src"]
-            urls.append(to_add)
+            urls.append(stripAnduseHTTPS(to_add))
     return urls
