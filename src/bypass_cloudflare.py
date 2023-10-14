@@ -13,7 +13,8 @@ def bypassCF(url : str) -> list[str]:
     with SB(uc=True,headless=True) as sb: #use headless=true to not see Chrome open (on Windows at least)
         sb.driver.get(url)
         soup = bs(sb.driver.page_source,'html.parser')
-        for image in soup.findAll("img"):
+        readerarea = soup.find("div",{"id":"readerarea"})
+        for image in readerarea.findAll("img"):
             try: #lazy loaded images have a data-src attribute instead of a src attribute
                 to_add = image["data-src"]
             except KeyError: 

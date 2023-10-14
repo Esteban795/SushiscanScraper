@@ -18,8 +18,9 @@ def grabImgURLS(url : str) -> list[str]:
         list of image urls (EVERY IMAGE OF THE PAGE,EVEN THE ONES NOT PART OF THE MANGA)
     """
     soup = bs(urlopen(url),'lxml')
+    readerarea = soup.find("div",{"id":"readerarea"})
     urls = []
-    for image in soup.findAll("img"):
+    for image in readerarea.find_all("img"):
         url = image["src"]
         urls.append(stripAnduseHTTPS(url)) #for some reasons, some urls have a space right before https://, so we just strip it.
     return urls
@@ -89,7 +90,8 @@ if __name__ == "__main__":
         elif "anime-sama" in url:
             urls = bypassCF(url)
         elif "sushiscan.net" in url:
-            urls = forceFullMode(url)
+            #urls = forceFullMode(url)
+            print("Site not supported yet, thanks to a recent update to Cloudflare. Please use sushiscan.fr or anime-sama.")
         else:
             print("INVALID URL : website not supported. Only sushiscan.fr, sushiscan.net and anime-sama are supported.")
         filenames = downloadImages(urls,out_folder)
