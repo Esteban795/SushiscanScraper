@@ -1,6 +1,6 @@
 from seleniumbase import SB
 from bs4 import BeautifulSoup as bs
-from url_handling import stripAnduseHTTPS
+from url_handling import stripAndUseHTTPS
 
 def bypassCF(url : str) -> list[str]:
     """Grabs every image from source link, even if is protected by Cloudflare.
@@ -19,5 +19,5 @@ def bypassCF(url : str) -> list[str]:
                 to_add = image["data-src"]
             except KeyError: 
                 to_add = image["src"]
-            urls.append(stripAnduseHTTPS(to_add))
+            urls.append(stripAndUseHTTPS(to_add))
     return urls

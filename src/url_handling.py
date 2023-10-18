@@ -1,4 +1,4 @@
-def stripAnduseHTTPS(url : str) -> str:
+def stripAndUseHTTPS(url : str) -> str:
     correct_url = url.strip() #some urls have a space before it, don't ask me why
     if correct_url[:4] == "http" and correct_url[4] != "s": #some urls are http:// instead of https which throws 404
         correct_url = correct_url.replace("http","https")

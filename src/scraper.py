@@ -3,8 +3,7 @@ from urllib.request import urlopen
 from PIL import Image
 import os
 from bypass_cloudflare import bypassCF
-from force_fullmode import forceFullMode
-from url_handling import stripAnduseHTTPS,checkValidFileExt
+from url_handling import stripAndUseHTTPS,checkValidFileExt
 import cloudscraper
 
 
@@ -22,7 +21,7 @@ def grabImgURLS(url : str) -> list[str]:
     urls = []
     for image in readerarea.find_all("img"):
         url = image["src"]
-        urls.append(stripAnduseHTTPS(url)) #for some reasons, some urls have a space right before https://, so we just strip it.
+        urls.append(stripAndUseHTTPS(url)) #for some reasons, some urls have a space right before https://, so we just strip it.
     return urls
 
 def downloadImages(urls : list[str], out_folder : str) -> list[str]:
@@ -91,7 +90,7 @@ if __name__ == "__main__":
             urls = bypassCF(url)
         elif "sushiscan.net" in url:
             #urls = forceFullMode(url)
-            print("Site not supported yet, thanks to a recent update to Cloudflare. Please use sushiscan.fr or anime-sama.")
+            print("Site not supported yet. Please use sushiscan.fr or anime-sama.me")
         else:
             print("INVALID URL : website not supported. Only sushiscan.fr, sushiscan.net and anime-sama are supported.")
         filenames = downloadImages(urls,out_folder)
