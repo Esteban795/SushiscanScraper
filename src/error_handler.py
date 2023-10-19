@@ -26,7 +26,3 @@ def except_hook(exctype,value,traceback):
             print(f"File already exists : {msg}")
         case _:
             print(f"Something went wrong : {value}, {traceback}")
-    
-if __name__ == "__main__":
-    sys.excepthook = except_hook
-

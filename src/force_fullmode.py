@@ -1,8 +1,7 @@
-from seleniumbase import SB
 from bs4 import BeautifulSoup as bs
 from url_handling import *
 
-def forceFullMode(sb,url : str) -> list[str]:
+def forceFullPageMode(sb,url : str) -> list[str]:
     """
     forces the website to display the manga in full page mode.
     Args :
