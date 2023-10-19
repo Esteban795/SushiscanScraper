@@ -1,26 +1,31 @@
-from seleniumbase import SB
 from bs4 import BeautifulSoup as bs
-from url_handling import stripAnduseHTTPS
+from url_handling import *
 
-JS_FUNC = """
-elt = document.getElementById("readingmode");
-elt.children[0].selected = "selected";
-elt.children[1].selected = "";
-elt.dispatchEvent(new Event ("change",{"bubbles" : true}));
-"""
-
-def forceFullMode(url : str) -> None:
+def forceFullPageMode(sb,url : str) -> list[str]:
+    """
+    forces the website to display the manga in full page mode.
+    Args :
+        url : url of the manga
+    Returns :
+        list of urls of the images
+    """
     urls = []
-    with SB(uc=True,headless=True) as sb:
-        sb.driver.get(url)
-        sb.driver.execute_script(JS_FUNC)
-        soup = bs(sb.driver.page_source,'html.parser')
-        for i in soup.findAll("img"):
-            try:
-                to_add = i["data-src"]
-            except: 
-                to_add = i["src"]
-            urls.append(stripAnduseHTTPS(to_add))
+    JS_FUNC = """
+    elt = document.getElementById("readingmode");
+    elt.children[0].selected = "selected";
+    elt.children[1].selected = "";
+    elt.dispatchEvent(new Event ("change",{"bubbles" : true}));
+    """
+    sb.driver.get(url)
+    sb.driver.execute_script(JS_FUNC)
+    soup = bs(sb.driver.page_source,'html.parser')
+    readerarea = soup.find("div",{"id":"readerarea"})
+    for i in readerarea.findAll("img"):
+        try:
+            to_add = i["data-src"]
+        except: 
+            to_add = i["src"]
+        urls.append(stripAndUseHTTPS(to_add))
     return urls
 
 
