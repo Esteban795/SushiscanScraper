@@ -2,10 +2,10 @@ from bs4 import BeautifulSoup as bs
 import requests
 from PIL import Image
 import os
-from bypass_cloudflare import bypassCF
 from url_handling import stripAndUseHTTPS,checkValidFileExt
 import cloudscraper
 from error_handler import *
+from force_fullmode import forceFullMode
 
 ALLOWED_WEBSITES = ["anime-sama","sushiscan.net","sushiscan.fr"]
 
@@ -44,7 +44,6 @@ def downloadImages(urls : list[str], out_folder : str) -> list[str]:
                     clearFolder(out_folder)
                     raise InvalidStatusCode(f"{url} returned status code {req.status_code}, should be 200 or 301,302,303,304.")
                 f.write(req.content)
-                req.co
                 filenames.append(filename)
     return filenames
 
@@ -54,17 +53,17 @@ def mergeImagesToPDF(filenames,folder):
         filenames : list of filenames of the path_images to merge (in the right order, because os.listdir's order is unspecified.
         folder : folder where the path_images are stored
     """
-    path_images = [Image.open(folder + f) for f in filenames]
-    images = []
-    for i in range(len(filenames)):
-        if path_images[i].mode == "RGBA":
-            path_images[i].load()
-            background = Image.new("RGB", path_images[i].size, (255, 255, 255))
-            background.paste(path_images[i], mask=path_images[i].split()[3])
-            images.append(background)
-        else:
-            images.append(path_images[i])
-    images[0].save(folder[:-1] + ".pdf", "PDF" ,resolution=100.0, save_all=True, append_path_images=images[1:])
+    images = [Image.open(f"{folder}{f}") for f in filenames]
+    # images = []
+    # for i in range(len(filenames)):
+    #     if path_images[i].mode == "RGBA":
+    #         path_images[i].load()
+    #         background = Image.new("RGB", path_images[i].size, (255, 255, 255))
+    #         background.paste(path_images[i], mask=path_images[i].split()[3])
+    #         images.append(background)
+    #     else:
+    #         images.append(path_images[i])
+    images[0].save(folder[:-1] + ".pdf", "PDF" ,resolution=100.0, save_all=True, append_images=images[1:])
 
 def clearFolder(folder):
     """Removes all files from a folder, then removes the folder itself.
@@ -72,7 +71,7 @@ def clearFolder(folder):
         folder : path of the folder to remove.
     """
     for file in os.listdir(folder):
-        os.remove(folder + file)
+        os.remove(f"{folder}{file}")
     os.rmdir(folder)
 
 if __name__ == "__main__":
@@ -80,13 +79,13 @@ if __name__ == "__main__":
     out = input("Specify an absolute (or relative) path to store the manga scan (nothing specified means it will download it in the same folder as SushiscanScraper) : ")
     sep = "./" if out == "" else "/"
     url_splitted = url.split("/")
-    out_folder = sep + url_splitted[-2] + "/"
+    out_folder = f"{sep}{url_splitted[-2]}/"
     os.mkdir(out_folder) #temp dir to store images until I merge them into a single pdf
     try:
         if "sushiscan.fr" in url: #sushiscan.fr isn't protected by cloudflare, no needs to bypass anything
             urls = grabImgURLS(url)
         elif "anime-sama" in url:
-            urls = bypassCF(url)
+            urls = forceFullMode(url)
         elif "sushiscan.net" in url:
             #urls = forceFullMode(url)
             print("Site not supported yet. Please use sushiscan.fr or anime-sama.me")

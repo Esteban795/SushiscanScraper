@@ -22,10 +22,11 @@ def except_hook(exctype,value,traceback):
             print(f"Invalid status code returned by : {msg}")
         case InvalidWebsite(msg):
             print(f"Invalid website : {msg}")
+        case FileExistsError(msg):
+            print(f"File already exists : {msg}")
         case _:
             print(f"Something went wrong : {value}, {traceback}")
     
-
 if __name__ == "__main__":
     sys.excepthook = except_hook
 
