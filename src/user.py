@@ -51,6 +51,8 @@ class User():
         if res == "all":
             return chapters_list
         elif re.match(RANGE_PATTERN,res):
+            chapters_list = chapters_list[::-1]
+            print(chapters_list)
             start,end = re.findall(RANGE_PATTERN,res)[0]
             if start == "" and end == "":
                 raise InvalidRangeFormat(":")
@@ -74,6 +76,8 @@ class User():
                 images_filenames = self.scraper.downloadChapterImages(images_urls,folder_name)
                 mergeImagesToPDF(images_filenames,folder_path)
                 clearFolder(folder_path)
+            elif name == "exit":
+                exit(0)
             results_list = self.searchByName(name)
             if len(results_list) == 0:
                 raise NoResultsFound(name)

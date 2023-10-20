@@ -21,8 +21,9 @@ class EmptyResults(ValueError):
         super().__init__(*args)
 
 class NoResultsFound(ValueError):
-    def __init__(self, *args: object) -> None:
+    def __init__(self,name, *args: object) -> None:
         super().__init__(*args)
+        self.name = name
 
 def except_hook(exctype,value,traceback) -> None:
     match exctype:
@@ -40,9 +41,10 @@ def except_hook(exctype,value,traceback) -> None:
             print(f"Invalid range format : {msg}")
         case EmptyResults(msg):
             print(f"Empty result : {msg}")
-        case NoResultsFound(msg):
-            print(f"No results found for : {msg}")
+        case NoResultsFound() as e:
+            print(f"No results found for : {e.name}")
         case KeyboardInterrupt():
             print("Interrupted by user input.")
-        case _:
-            print(f"Something went wrong : {value}, {traceback}")
+        case Exception as e:
+            print(f"Something went wrong : {e}")
+    return

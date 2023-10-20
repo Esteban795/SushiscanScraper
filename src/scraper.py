@@ -57,7 +57,7 @@ class Scraper():
             path = f"{self.folder}{folder_name}"
             mkdir(path)
             chapter_imgs_urls = self.forceFullPageMode(chapter)
-            chapter_imgs_filenames = self.downloadChapterImages(chapter_imgs_urls)
+            chapter_imgs_filenames = self.downloadChapterImages(chapter_imgs_urls,folder_name)
             mergeImagesToPDF(chapter_imgs_filenames,path)
             clearFolder(path)
 
