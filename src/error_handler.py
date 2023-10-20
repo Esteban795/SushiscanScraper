@@ -11,8 +11,20 @@ class InvalidWebsite(ValueError):
 class InvalidStatusCode(ValueError):
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
-    
-def except_hook(exctype,value,traceback):
+
+class InvalidRangeFormat(ValueError):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+
+class EmptyResults(ValueError):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+
+class NoResultsFound(ValueError):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+
+def except_hook(exctype,value,traceback) -> None:
     match exctype:
         case IndexError(msg):
             print(f"Bad index : {msg}")
@@ -24,5 +36,13 @@ def except_hook(exctype,value,traceback):
             print(f"Invalid website : {msg}")
         case FileExistsError(msg):
             print(f"File already exists : {msg}")
+        case InvalidRangeFormat(msg):
+            print(f"Invalid range format : {msg}")
+        case EmptyResults(msg):
+            print(f"Empty result : {msg}")
+        case NoResultsFound(msg):
+            print(f"No results found for : {msg}")
+        case KeyboardInterrupt():
+            print("Interrupted by user input.")
         case _:
             print(f"Something went wrong : {value}, {traceback}")

@@ -1,7 +1,9 @@
 from PIL import Image
 from os import mkdir,rmdir,listdir,remove
+import re
 
 ALLOWED_WEBSITES = ["anime-sama.me","sushiscan.fr","sushiscan.net"]
+RANGE_PATTERN = re.compile(r"^(\d*)?(?:-|:)(\d*)?$") #detects patterns like 1:5 or 1-5, :5, 5:
 
 def stripAndUseHTTPS(url : str) -> str:
     correct_url = url.strip() #some urls have a space before it, don't ask me why
@@ -56,4 +58,13 @@ def mergeImagesToPDF(filenames : list[str],folder : str) -> None:
         folder : folder where the path_images are stored
     """
     images = [Image.open(f"{folder}{f}") for f in filenames]
-    images[0].save(folder[:-1] + ".pdf", "PDF" ,resolution=100.0, save_all=True, append_images=images[1:])
+    temp = []
+    for i in range(len(filenames)):
+        if images[i].mode == "RGBA":
+            images[i].load()
+            background = Image.new("RGB", images[i].size, (255, 255, 255))
+            background.paste(images[i], mask=images[i].split()[3])
+            temp.append(background)
+        else:
+            temp.append(images[i])
+    temp[0].save(folder[:-1] + ".pdf", "PDF" ,resolution=100.0, save_all=True, append_images=temp[1:])
