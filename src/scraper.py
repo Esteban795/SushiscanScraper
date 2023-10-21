@@ -4,13 +4,16 @@ from bs4 import BeautifulSoup as bs
 from utilities import *
 from error_handler import *
 
+@base_error_handler
 class Scraper():
+    @base_error_handler
     def __init__(self,sb,website,out_folder) -> None:
         self.website = website
         self.driver = sb.driver
         self.folder = out_folder
         self.cs_scraper = cloudscraper.create_scraper()
 
+    @base_error_handler
     def downloadChapterImages(self,urls : list[str],folder : str) -> list[str]:
         """A function to download images from a lists of URLs
         Args : 
@@ -27,11 +30,11 @@ class Scraper():
                 with open(outpath, 'wb') as f:
                     req = self.cs_scraper.get(url,allow_redirects=True)
                     if req.status_code != 200:
-                        raise InvalidStatusCode(f"{url} returned status code {req.status_code}, should be 200 or 301,302,303,304.")
+                        raise InvalidStatusCode(f"{url} returned status code {req.status_code}, should be 200 or 301,302,303,304.","error")
                     f.write(req.content)
                     filenames.append(filename)
         return filenames
-    
+    @base_error_handler
     def getAvailableChapters(self, url : str) -> list[str]:
         """Returns a list of available chapters from the manga's main page url.
         Args :
@@ -44,7 +47,7 @@ class Scraper():
         chapterlist = soup.find_all("div",{"class" : "eph-num"})
         chapters_urls = [a.findChildren()[0]["href"] for a in chapterlist]
         return chapters_urls
-
+    @base_error_handler
     def downloadChapters(self,chapters : list[str]) -> None:
         """
         Downloads every chapter from the list of chapters's urls.
@@ -52,6 +55,7 @@ class Scraper():
             chapters : list of chapters's urls
             out_folder : folder to store the chapters
         """
+        print(chapters)
         for chapter in chapters:
             folder_name = generateFolderName(chapter)
             path = f"{self.folder}{folder_name}"
@@ -60,7 +64,7 @@ class Scraper():
             chapter_imgs_filenames = self.downloadChapterImages(chapter_imgs_urls,folder_name)
             mergeImagesToPDF(chapter_imgs_filenames,path)
             clearFolder(path)
-
+    @base_error_handler
     def forceFullPageMode(self,url : str) -> list[str]:
         """
         forces the website to display the manga in full page mode.
@@ -88,29 +92,3 @@ class Scraper():
             urls.append(stripAndUseHTTPS(to_add))
         return urls
     
-
-# if __name__ == "__main__":
-#     url = input("Paste the URL of the scan here : ")
-#     out = input("Specify an absolute (or relative) path to store the manga scan (nothing specified means it will download it in the same folder as SushiscanScraper) : ")
-#     sep = "./" if out == "" else "/"
-#     url_splitted = url.split("/")
-#     out_folder = f"{sep}{url_splitted[-2]}/"
-#     os.mkdir(out_folder) #temp dir to store images until I merge them into a single pdf
-#     try:
-#         if "sushiscan.fr" in url: #sushiscan.fr isn't protected by cloudflare, no needs to bypass anything
-#             urls = grabImgURLS(url)
-#         elif "anime-sama" in url:
-#             urls = forceFullMode(url)
-#         elif "sushiscan.net" in url:
-#             #urls = forceFullMode(url)
-#             print("Site not supported yet. Please use sushiscan.fr or anime-sama.me")
-#         else:
-#             print("INVALID URL : website not supported. Only sushiscan.fr, sushiscan.net and anime-sama are supported.")
-#         filenames = downloadImages(urls,out_folder)
-#         mergeImagesToPDF(filenames,out_folder)
-#     except Exception as e:
-#         print(f"Something went wrong : {e}. Aborting process, removing images from the computer.")
-#         clearFolder(out_folder)
-#     else:
-#         print("Everything went okay!")
-#         clearFolder(out_folder)

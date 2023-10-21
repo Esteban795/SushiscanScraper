@@ -1,50 +1,49 @@
-import sys
+from errors import *
+from functools import wraps
+from typing import Callable
+from logger import _getDebugLogger
+from os.path import abspath
+import inspect
 
-class NotFound404(Exception):
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
+CRITICAL = ["critical","fatal"]
+NON_CRITICAL = ["error","warning","info","debug"]
 
-class InvalidWebsite(ValueError):
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
+def base_error_handler(func : Callable) -> Callable:
+    """
+    raises Error as explained below : 
 
-class InvalidStatusCode(ValueError):
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
+    Expected : (in the form of Exception(msg,level))
+    -> prints [time error level] message
+    Example : 
+    >>> raise ValueError('This is a value error.','warning') 
+    would result in : ascii_time - expected - level - message
 
-class InvalidRangeFormat(ValueError):
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
+    Unexpected : (in the form of Exception(msg))
+    -> logs ascii_time - expected - level - message
+    Example :
+    >>> raise ValueError('This is a value error.')
+    would result in : ascii_time - unexpected - error - message being added to log_file
+    """
+    @wraps(func)
+    def _wrapper(*args,**kwargs):
+        try:
+            return func(*args,**kwargs)
+        except BaseException as e:
+            _logError(e)
+    return _wrapper
 
-class EmptyResults(ValueError):
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
-
-class NoResultsFound(ValueError):
-    def __init__(self,name, *args: object) -> None:
-        super().__init__(*args)
-        self.name = name
-
-def except_hook(exctype,value,traceback) -> None:
-    match exctype:
-        case IndexError(msg):
-            print(f"Bad index : {msg}")
-        case NotFound404(msg):
-            print(f"URL {msg} was not found.")
-        case InvalidStatusCode(msg):
-            print(f"Invalid status code returned by : {msg}")
-        case InvalidWebsite(msg):
-            print(f"Invalid website : {msg}")
-        case FileExistsError(msg):
-            print(f"File already exists : {msg}")
-        case InvalidRangeFormat(msg):
-            print(f"Invalid range format : {msg}")
-        case EmptyResults(msg):
-            print(f"Empty result : {msg}")
-        case NoResultsFound() as e:
-            print(f"No results found for : {e.name}")
-        case KeyboardInterrupt():
-            print("Interrupted by user input.")
-        case Exception as e:
-            print(f"Something went wrong : {e}")
-    return
+def _logError(error : BaseException) -> bool:
+    tb = error.__traceback__
+    lineno = tb.tb_lineno
+    filename = abspath(inspect.getfile(tb))
+    err_level = error.args[-1] if len(error.args) == 2 else None #check if we're on an expected error
+    message = f"{filename} - {lineno} - {error.args[0]}"
+    print(message)
+    logger = _getDebugLogger(expected=True) if err_level else _getDebugLogger()
+    if err_level in CRITICAL:
+        logger.critical(message)
+    elif err_level in NON_CRITICAL:
+        logger.debug(message)
+    else:
+        logger.fatal(message)
+    return True
