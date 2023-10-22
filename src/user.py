@@ -1,24 +1,19 @@
 from bs4 import BeautifulSoup as bs
 import re
-import os
 
-from utilities import checkValidWebsite,RANGE_PATTERN
+from utilities import RANGE_PATTERN
 from error_handler import *
 from scraper import Scraper
 from utilities import *
 
-
 class User():
 
-    @base_error_handler
     def __init__(self,sb,website,out_folder) -> None:
         self.folder = out_folder
         self.website = website
         self.scraper = Scraper(sb,website,out_folder)
-        if not checkValidWebsite(website):
-            raise InvalidWebsite(f"Website {website} is not allowed. The ones allowed are : {','.join(ALLOWED_WEBSITES)}","error")
     
-    @base_error_handler
+    @try_until_no_error
     def searchByName(self, name : str) -> list[tuple[str,str]]:
         """Searches for a manga by its name on the website.
         Args :
@@ -33,7 +28,7 @@ class User():
         results_list = [(a["title"],a["href"]) for a in children_divs]
         return results_list
     
-    @base_error_handler
+    @try_until_no_error
     def chooseFromResults(self,results_list : list[tuple[str,str]]) -> str:
         """Asks the user to choose a manga from the results list.
         Args :
@@ -44,7 +39,7 @@ class User():
         res = int(input(f"From your input, here are the available results.Select one : {', '.join([i[0] for i in results_list])}\n"))
         return results_list[res - 1][1]
     
-    @base_error_handler
+    @try_until_no_error
     def modifyChaptersList(self,chapters_list : list[str]):
         """Asks the user to choose which chapters to download.
         Args :
@@ -52,9 +47,9 @@ class User():
         Returns :
             list of chapters's urls
         """
-        res = input(f"There are {len(chapters_list)} chapters available. :\n")
+        res = input(f"There are {len(chapters_list)} chapters available. Choose using the range format (start:end or start-end):\n")
         if res == "all":
-            return chapters_list
+            return chapters_list[::-1]
         elif re.match(RANGE_PATTERN,res):
             chapters_list = chapters_list[::-1]
             start,end = re.findall(RANGE_PATTERN,res)[0]
@@ -67,38 +62,25 @@ class User():
             return chapters_list[int(start) - 1:int(end)]
         else:
             raise NoResultsFound("The results you chose are empty.","warning")
-    @base_error_handler
+
+    @back_to_main_loop
     def loop(self) -> None:
         """Main loop of the program."""
         while True:
             name = input("Enter the name of the manga you want to download : ")
-            if name.startswith("http"):
-                folder_name = generateFolderName(name)
-                folder_path = f"{self.folder}{folder_name}"
-                os.mkdir(folder_path)
-                images_urls = self.scraper.forceFullPageMode(name)
-                images_filenames = self.scraper.downloadChapterImages(images_urls,folder_name)
-                mergeImagesToPDF(images_filenames,folder_path)
-                clearFolder(folder_path)
+            if name.startswith(f"https://{self.website}"): #its an actual url
+                self.scraper.downloadChapters([name])
                 print("Done.")
             elif name == "exit":
                 exit(0)
-            results_list = self.searchByName(name)
-            if len(results_list) == 0:
-                raise NoResultsFound("No results found for your research.","warning")
-            manga_url = self.chooseFromResults(results_list)
-            chapters_urls = self.scraper.getAvailableChapters(manga_url)
-            chapters_urls = self.modifyChaptersList(chapters_urls)
-            self.scraper.downloadChapters(chapters_urls)
-            print("Done.")
-    @base_error_handler
-    def changeWebsite(self) -> None:
-        """Changes the website to download from.
-        Args :
-            new_website : website to download from
-        """
-        new_website = input(f"Enter the website you want to download from. The ones allowed are : {','.join(ALLOWED_WEBSITES)}")
-        if not checkValidWebsite(new_website):
-            raise InvalidWebsite("The website you entered is not allowed.","error")
-        self.website = new_website
-        self.scraper.website = new_website
+            else:
+                results_list = self.searchByName(name)
+                if len(results_list) == 0:
+                    raise NoResultsFound("No results found for your research.","warning")
+                manga_url = self.chooseFromResults(results_list)
+                chapters_urls = self.scraper.getAvailableChapters(manga_url)
+                chapters_urls = self.modifyChaptersList(chapters_urls)
+                self.scraper.downloadChapters(chapters_urls)
+                print("Done.")
+
+

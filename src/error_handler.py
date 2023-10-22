@@ -29,8 +29,34 @@ def base_error_handler(func : Callable) -> Callable:
         try:
             return func(*args,**kwargs)
         except BaseException as e:
+            if isinstance(e,KeyboardInterrupt):
+                exit(1)
             _logError(e)
     return _wrapper
+
+def try_until_no_error(func : Callable) -> Callable:
+    """
+    Attemps to call the function until no error is raised.
+    """
+    def wrapper(*args,**kwargs):
+        while True:
+            try:
+                return func(*args,**kwargs)
+            except BaseException as e:
+                if isinstance(e,KeyboardInterrupt):
+                    exit(1)
+                else:
+                    _logError(e)
+    return wrapper
+
+def back_to_main_loop(func : Callable) -> Callable:
+    def wrapper(self):
+        try:
+            func(self)
+        except BaseException as e:
+            _logError(e)
+            self.loop()
+    return wrapper
 
 def _logError(error : BaseException) -> bool:
     tb = error.__traceback__
@@ -38,7 +64,6 @@ def _logError(error : BaseException) -> bool:
     filename = abspath(inspect.getfile(tb))
     err_level = error.args[-1] if len(error.args) == 2 else None #check if we're on an expected error
     message = f"{filename} - {lineno} - {error.args[0]}"
-    print(message)
     logger = _getDebugLogger(expected=True) if err_level else _getDebugLogger()
     if err_level in CRITICAL:
         logger.critical(message)

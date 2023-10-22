@@ -6,14 +6,16 @@ from error_handler import *
 
 @base_error_handler
 class Scraper():
-    @base_error_handler
+
+    @base_error_handler #only handle cloudscraper errors
     def __init__(self,sb,website,out_folder) -> None:
         self.website = website
         self.driver = sb.driver
         self.folder = out_folder
         self.cs_scraper = cloudscraper.create_scraper()
+        self.sb = sb
 
-    @base_error_handler
+    
     def downloadChapterImages(self,urls : list[str],folder : str) -> list[str]:
         """A function to download images from a lists of URLs
         Args : 
@@ -34,7 +36,8 @@ class Scraper():
                     f.write(req.content)
                     filenames.append(filename)
         return filenames
-    @base_error_handler
+    
+    
     def getAvailableChapters(self, url : str) -> list[str]:
         """Returns a list of available chapters from the manga's main page url.
         Args :
@@ -47,7 +50,8 @@ class Scraper():
         chapterlist = soup.find_all("div",{"class" : "eph-num"})
         chapters_urls = [a.findChildren()[0]["href"] for a in chapterlist]
         return chapters_urls
-    @base_error_handler
+    
+    
     def downloadChapters(self,chapters : list[str]) -> None:
         """
         Downloads every chapter from the list of chapters's urls.
@@ -55,7 +59,6 @@ class Scraper():
             chapters : list of chapters's urls
             out_folder : folder to store the chapters
         """
-        print(chapters)
         for chapter in chapters:
             folder_name = generateFolderName(chapter)
             path = f"{self.folder}{folder_name}"
@@ -64,6 +67,7 @@ class Scraper():
             chapter_imgs_filenames = self.downloadChapterImages(chapter_imgs_urls,folder_name)
             mergeImagesToPDF(chapter_imgs_filenames,path)
             clearFolder(path)
+
     @base_error_handler
     def forceFullPageMode(self,url : str) -> list[str]:
         """
@@ -80,6 +84,9 @@ class Scraper():
         elt.children[1].selected = "";
         elt.dispatchEvent(new Event ("change",{"bubbles" : true}));
         """
+        status_code =  self.sb.get_link_status_code(url)
+        if status_code != 200:
+            raise InvalidStatusCode(f"{url} returned status code {status_code}, should be 200 or 301,302,303,304.","critical")
         self.driver.get(url)
         self.driver.execute_script(JS_FUNC)
         soup = bs(self.driver.page_source,'html.parser')
