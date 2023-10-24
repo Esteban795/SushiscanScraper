@@ -2,7 +2,7 @@ from PIL import Image
 from os import mkdir,rmdir,listdir,remove
 import re
 
-ALLOWED_WEBSITES = ["anime-sama.me","sushiscan.fr","sushiscan.net"]
+ALLOWED_WEBSITES = ["anime-sama.me","sushiscan.fr"]
 RANGE_PATTERN = re.compile(r"^(\d*)?(?:-|:)(\d*)?$") #detects patterns like 1:5 or 1-5, :5, 5:
 
 def stripAndUseHTTPS(url : str) -> str:

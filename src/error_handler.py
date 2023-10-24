@@ -44,7 +44,7 @@ def try_until_no_error(func : Callable) -> Callable:
                 return func(*args,**kwargs)
             except BaseException as e:
                 if isinstance(e,KeyboardInterrupt):
-                    exit(1)
+                    exit(0)
                 else:
                     _logError(e)
     return wrapper
@@ -54,8 +54,11 @@ def back_to_main_loop(func : Callable) -> Callable:
         try:
             func(self)
         except BaseException as e:
-            _logError(e)
-            self.loop()
+            if isinstance(e,KeyboardInterrupt):
+                exit(0)
+            else:
+                _logError(e)
+                self.loop()
     return wrapper
 
 def _logError(error : BaseException) -> bool:

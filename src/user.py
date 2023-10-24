@@ -61,7 +61,7 @@ class User():
                 end = len(chapters_list)
             return chapters_list[int(start) - 1:int(end)]
         else:
-            raise NoResultsFound("The results you chose are empty.","warning")
+            raise NoResultsFound("The results you chose are empty.","critical")
 
     @back_to_main_loop
     def loop(self) -> None:
