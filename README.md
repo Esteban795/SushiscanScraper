@@ -19,13 +19,22 @@ pip install requirements.txt
 ### Usage
 
 - You can then run the program using python, which should propose something like this : 
-![scraperexample](./examples/scraper.png)
+![scraperexample](./examples/scraper_intro.png)
 
-- If you see any other message than "Everything went okay!", please double check the URL you provided before opening an issue here. The error handler system is not fully working right now. Please refer to the `ISSUE_TEMPLATE` page in `./github/workflows`.
+- You then have two options :
+ - - Using the direct URL of the manga's chapter.
+ - - Typing a manga's name such as One Piece, One Punch Man etc. It will then display something like this :
+ <br/>
 
-Enjoy.
+![byname.png](./examples/byname.png)
+- Well, since there is only one result, you can only choose `1` as an answer. But you could have several : in this case, input a number between 1 and the number of results!
+
+- Use a "range" format to explain which chapters to choose. You can also type all to get them all !
+![chapterrange.png](./examples/chapterrange.png)
+
+Enjoy. If there are any error you understand, please go ahead and open an issue with your debug log files.
 
 ### Objectives :
 
-- Bypass cloudflare to allow people to have access to a bigger library. (i.e using sushiscan.net URLs instead of sushiscan.fr)
-- Allow to bulk download (like download every single page of a manga at once, or downloading only certain chapters, or downloading a range of chapters)
+- ~~Bypass cloudflare to allow people to have access to a bigger library. (i.e using sushiscan.net URLs instead of sushiscan.fr)~~ (didn't manage a way around that. Tried cloudscraper, proxies, captcha solvers but nothing that was free worked. If you have any advices on that, I'll gladly add it to the program.)
+- ~~Allow to bulk download (like download every single page of a manga at once, or downloading only certain chapters, or downloading a range of chapters)~~
