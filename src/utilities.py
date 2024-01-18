@@ -2,7 +2,6 @@ from PIL import Image
 from os import mkdir,rmdir,listdir,remove
 import re
 
-ALLOWED_WEBSITES = ["anime-sama.me","sushiscan.fr"]
 RANGE_PATTERN = re.compile(r"^(\d*)?(?:-|:)(\d*)?$") #detects patterns like 1:5 or 1-5, :5, 5:
 
 def stripAndUseHTTPS(url : str) -> str:
@@ -20,9 +19,6 @@ def checkValidFileExt(filename : str) -> bool:
     """
     valid_ext = ["jpg","jpeg","png","bmp","webp"]
     return filename[-3:].lower() in valid_ext
-
-def checkValidWebsite(website : str) -> bool:
-    return website in ALLOWED_WEBSITES
 
 def generateFilename(url : str) -> str:
     """Generates a filename from an url

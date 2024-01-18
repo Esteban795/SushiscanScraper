@@ -8,10 +8,9 @@ from utilities import *
 
 class User():
 
-    def __init__(self,sb,website,out_folder) -> None:
+    def __init__(self,sb,out_folder) -> None:
         self.folder = out_folder
-        self.website = website
-        self.scraper = Scraper(sb,website,out_folder)
+        self.scraper = Scraper(sb,out_folder)
     
     @try_until_no_error
     def searchByName(self, name : str) -> list[tuple[str,str]]:
@@ -22,7 +21,7 @@ class User():
             
         Returns :
             list of tuples (manga name, manga url)"""
-        self.scraper.driver.get(f"https://{self.website}/?s={'+'.join(name.split(' '))}") #replace every blank space by a + 
+        self.scraper.driver.get(f"https://sushiscan.net/?s={'+'.join(name.split(' '))}") #replace every blank space by a + 
         soup = bs(self.scraper.driver.page_source,'html.parser')
         children_divs = [a.findChildren()[0] for a in soup.find_all("div",{"class" : "bsx"})]
         results_list = [(a["title"],a["href"]) for a in children_divs]

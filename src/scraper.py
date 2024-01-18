@@ -1,20 +1,31 @@
-import cloudscraper
 from bs4 import BeautifulSoup as bs
-
+import requests
 from utilities import *
 from error_handler import *
+
+API_URL = "http://localhost:8191/v1"
 
 @base_error_handler
 class Scraper():
 
     @base_error_handler #only handle cloudscraper errors
-    def __init__(self,sb,website,out_folder) -> None:
-        self.website = website
+    def __init__(self,sb,out_folder) -> None:
         self.driver = sb.driver
         self.folder = out_folder
-        self.cs_scraper = cloudscraper.create_scraper()
         self.sb = sb
 
+    @base_error_handler
+    def makeApiRequest(self,url : str) -> dict:
+        """Makes a request to the FlareSolverr API."""
+        post_body = {
+            "cmd": "request.get",
+            "url": url,
+            "maxTimeout": 60000
+        }
+        response = requests.post(API_URL, headers={'Content-Type': 'application/json'}, json=post_body)
+        if response.status_code != 200:
+            raise InvalidStatusCode(f"{url} returned status code {response.status_code}, should be 200 or 301,302,303,304.","critical")
+        return response.json()
     
     def downloadChapterImages(self,urls : list[str],folder : str) -> list[str]:
         """A function to download images from a lists of URLs
